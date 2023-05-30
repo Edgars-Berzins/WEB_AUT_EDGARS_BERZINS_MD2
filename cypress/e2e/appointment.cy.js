@@ -1,41 +1,48 @@
+import BasePage from "../pageObjects/base.page";
+import loginPage from "../pageObjects/loginPage.page";
+import appointmentPage from "../pageObjects/appointmentPage.page";
+import summaryPage from "../pageObjects/summaryPage.page";
+import historyPage from "../pageObjects/historyPage";
+
+//Variables
+var facilitySeoul = 'Seoul CURA Healthcare Center';
+var comment = 'CURA Healthcare Service';
+var visitDateDay = 30;
+var healthcareProgramMedicaid = 'Medicaid';
+var HospitalReadmisionYes = 'Yes';
+
+//Test
 describe('Appointments', () => {
-  context("Scenario 1 - Make an Appointment", () => {
+  context("Appointment scenarios", () => {
     beforeEach(() => {
-      cy.visit("/");
-      cy.get("#btn-make-appointment").click();
-      cy.get('.form-control[placeholder="Username"]').invoke('val').then((value) => {
-        cy.get("#txt-username").type(value);
-      });
-      cy.get('.form-control[placeholder="Password"]').invoke('val').then((value) => {
-        cy.get("#txt-password").type(value);
-      });
-      cy.get('#btn-login').click();
+      BasePage.visit();//Go to page
+      BasePage.makeAppointment.click();//Click "Make appointment" button
+      loginPage.setUsernameToDemoUsername();//Get Demo Username, set it as login Username
+      loginPage.setPasswordToDemoPassword();//Get Demo Password, set it as login Password
+      loginPage.loginButton.click();//Click "Login" button
     });
 
     it("Scenario 1 - Make an Appointment", () => {
-      cy.get('#combo_facility').select('Seoul CURA Healthcare Center');
-      cy.get('#chk_hospotal_readmission').click();
-      cy.get('#radio_program_medicaid').click();
-      cy.get('#txt_visit_date').click();
-      cy.get('.day:not(.old)').contains('30').click();
-      cy.get('#txt_comment').type('CURA Healthcare Service');
-      cy.get('#btn-book-appointment').click();
+      appointmentPage.comboboxFacilitySelect(facilitySeoul);//Select facility "Seoul CURA Healthcare Center"
+      appointmentPage.checkboxHospitalReadmission.click();//Set checkbox "Hospital Readmission" to "Selected"
+      appointmentPage.radiobuttonProgramMedicaid.click();//Set radiobutton "Healthcare Program" to "Selected"
+      appointmentPage.widgetVisitDateSelectCurrentMonthDay(visitDateDay);//Open widget "Visit Date (Required)", set visit date to "visitDateDay" from the current moth
+      appointmentPage.textboxComment.type(comment);//Select text box "Comment", type in the "comment" variable
+      appointmentPage.buttonBookAppointment.click();//Click button "Book Appointment"
 
-      //Validate
-      cy.get('#facility').should('have.text', 'Seoul CURA Healthcare Center');
-      cy.get('#hospital_readmission').should('have.text', 'Yes');
-      cy.get('#program').should('have.text', 'Medicaid');
-      cy.get('#visit_date').invoke('text').then((text) => {
-        expect(text.startsWith('30')).to.be.true;
-      });
-      cy.get('#comment').should('have.text', 'CURA Healthcare Service');
+      //Validation
+      summaryPage.validationFacilityFieldHasText(facilitySeoul);//Validate if the "Facility" field has text "Seoul CURA Healthcare Center"
+      summaryPage.validationHospitalReadmisionFieldHasText(HospitalReadmisionYes);//Validate if the "Apply for hospital readmission" field HAS text "Yes"
+      summaryPage.validationHealthcareProgramFieldHasText(healthcareProgramMedicaid);//Validate if the "Healthcahre Program" field HAS text "Medicaid"
+      summaryPage.validationVisitDateFieldHasText(visitDateDay);//Validate if the "Visit Date" field STARTS with 30
+      summaryPage.validationCommentFieldHasText(comment);//Validate if the "Comment" field HAS text "CURA Healthcare Service"
     });
 
     it("Scenario 2 - Appointment history empty", () => {
-      cy.get('#menu-toggle').click();
-      cy.get('#sidebar-wrapper').should('have.class', 'active');
-      cy.get('a[href="history.php#history"]').click();
-      cy.get('#history > div > div:nth-child(1) > div > p').should('have.text', 'No appointment.');
+      appointmentPage.menuToggleButton.click();//Open sidebar
+      appointmentPage.validateIsActive(appointmentPage.sidebar);//Validate if the sidebar is active
+      appointmentPage.selectorHistory.click();//Open "History" page by clicking on the "History" selector in the sidebar
+      historyPage.validationNoAppointmentIsVisible();//Validate if the "No Appointmen" text is visible
     });
   });
 });
